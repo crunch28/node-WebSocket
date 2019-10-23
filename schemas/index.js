@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const { MONGO_ID, MONGO_PASSWORD, NODE_ENV } = process.env;
+const { MONGO_ID, MONGO_PASSWORD, NODE_ENV } = process.env; //변수 :  값
 const MONGO_URL = `mongodb://${MONGO_ID}:${MONGO_PASSWORD}@localhost:27017/admin`;
 
 module.exports = () => {
@@ -18,8 +18,9 @@ module.exports = () => {
       }
     });
   };
-  connect();
+  connect(); //몽도디비 연결
 
+  // 이벤트 리스닝 에러, 재연결
   mongoose.connection.on('error', (error) => {
     console.error('몽고디비 연결 에러', error);
   });

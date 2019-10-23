@@ -3,11 +3,12 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-const Room = require('../schemas/room');
-const Chat = require('../schemas/chat');
+const Room = require('../schemas/room'); //DB Room 스키마
+const Chat = require('../schemas/chat'); //DB Chat 스키마
 
 const router = express.Router();
 
+// 채팅방 목록
 router.get('/', async (req, res, next) => {
   try {
     const rooms = await Room.find({});
@@ -18,10 +19,12 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// 비밀번호가 없는 채팅방 생성
 router.get('/room', (req, res) => {
   res.render('room', { title: 'GIF 채팅방 생성' });
 });
 
+// 비밀번호가 있는 채팅방생성
 router.post('/room', async (req, res, next) => {
   try {
     const room = new Room({
@@ -32,7 +35,7 @@ router.post('/room', async (req, res, next) => {
     });
     const newRoom = await room.save();
     const io = req.app.get('io');
-    io.of('/room').emit('newRoom', newRoom);
+    io.of('/room').emit('newRoom', newRoom); // 채팅방 생성 정보 전송
     res.redirect(`/room/${newRoom._id}?password=${req.body.password}`);
   } catch (error) {
     console.error(error);
@@ -40,6 +43,7 @@ router.post('/room', async (req, res, next) => {
   }
 });
 
+// 채팅방 렌더링 라우터
 router.get('/room/:id', async (req, res, next) => {
   try {
     const room = await Room.findOne({ _id: req.params.id });
@@ -53,7 +57,7 @@ router.get('/room/:id', async (req, res, next) => {
       return res.redirect('/');
     }
     const { rooms } = io.of('/chat').adapter;
-    if (rooms && rooms[req.params.id] && room.max <= rooms[req.params.id].length) {
+    if (rooms && rooms[req.params.id] && room.max <= rooms[req.params.id].length) { // 소켓의 수 체크
       req.flash('roomError', '허용 인원이 초과하였습니다.');
       return res.redirect('/');
     }
@@ -70,6 +74,7 @@ router.get('/room/:id', async (req, res, next) => {
   }
 });
 
+// 채팅방 삭제 라우터
 router.delete('/room/:id', async (req, res, next) => {
   try {
     await Room.remove({ _id: req.params.id });
@@ -84,6 +89,7 @@ router.delete('/room/:id', async (req, res, next) => {
   }
 });
 
+// 채팅 라우터
 router.post('/room/:id/chat', async (req, res, next) => {
   try {
     const chat = new Chat({
@@ -92,7 +98,7 @@ router.post('/room/:id/chat', async (req, res, next) => {
       chat: req.body.chat,
     });
     await chat.save();
-    req.app.get('io').of('/chat').to(req.params.id).emit('chat', chat);
+    req.app.get('io').of('/chat').to(req.params.id).emit('chat', chat); // 같은 방에 있는 소켓에게 메시지 데이터 전송
     res.send('ok');
   } catch (error) {
     console.error(error);
@@ -100,6 +106,7 @@ router.post('/room/:id/chat', async (req, res, next) => {
   }
 });
 
+// 이미지 없로드
 fs.readdir('uploads', (error) => {
   if (error) {
     console.error('uploads 폴더가 없어 uploads 폴더를 생성합니다.');
@@ -118,6 +125,8 @@ const upload = multer({
   }),
   limits: { fileSize: 5 * 1024 * 1024 },
 });
+
+// 이미지 전송 라우터
 router.post('/room/:id/gif', upload.single('gif'), async (req, res, next) => {
   try {
     const chat = new Chat({

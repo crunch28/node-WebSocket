@@ -8,17 +8,17 @@ block content
     #chat-list
       for chat in chats
         if chat.user === user
-          .mine(style='color:' + chat.user)
+          .mine(style='color:' + chat.user) <!-- 내 매시지 -->
             div= chat.user
             if chat.gif
               img(src='/gif/' + chat.gif)
             else
               div= chat.chat
         else if chat.user === 'system'
-          .system
+          .system  <!-- 시스템 메시지 -->
             div= chat.chat
-        else
-          .other(style='color:' + chat.user)
+        else 
+          .other(style='color:' + chat.user) <!-- 남 매시지 -->
             div= chat.user
             if chat.gif
               img(src='/gif/' + chat.gif)
@@ -29,11 +29,14 @@ block content
     input#gif(type='file' name='gif' accept='image/gif')
     input#chat(name='chat')
     button(type='submit') 전송
+
   script(src='/socket.io/socket.io.js')
   script.
-    var socket = io.connect('http://localhost:8005/chat', {
+    var socket = io.connect('http://localhost:8005/chat', { // chat 네임스페이스
       path: '/socket.io'
     });
+
+    //입장 이벤트 리스너
     socket.on('join', function (data) {
       var div = document.createElement('div');
       div.classList.add('system');
@@ -42,6 +45,8 @@ block content
       div.appendChild(chat);
       document.querySelector('#chat-list').appendChild(div);
     });
+
+    //퇴장 이벤트 리스너
     socket.on('exit', function (data) {
       var div = document.createElement('div');
       div.classList.add('system');
@@ -50,6 +55,8 @@ block content
       div.appendChild(chat);
       document.querySelector('#chat-list').appendChild(div);
     });
+
+    //채팅 이벤트 리스너
     socket.on('chat', function (data) {
       var div = document.createElement('div');
       if (data.user === '#{user}') {
@@ -72,6 +79,8 @@ block content
       div.style.color = data.user;
       document.querySelector('#chat-list').appendChild(div);
     });
+
+    // 이미지 전송
     document.querySelector('#chat-form').addEventListener('submit', function (e) {
       e.preventDefault();
       if (e.target.chat.value) {
@@ -88,6 +97,8 @@ block content
         xhr.send(JSON.stringify({ chat: this.chat.value }));
       }
     });
+
+    // 이미지 전송
     document.querySelector('#gif').addEventListener('change', function (e) {
       var formData = new FormData();
       var xhr = new XMLHttpRequest();

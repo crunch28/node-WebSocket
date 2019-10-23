@@ -12,7 +12,7 @@ block content
           th 허용 인원
           th 방장
       tbody
-        for room in rooms
+        for room in rooms 
           tr(data-id=room._id)
             td= room.title
             td= room.password ? '비밀방' : '공개방'
@@ -22,11 +22,14 @@ block content
             td: button(data-password=password data-id=room._id).join-btn 입장
   .error-message= error
   a(href='/room') 채팅방 생성
+
   script(src='/socket.io/socket.io.js')
   script.
-    var socket = io.connect('http://localhost:8005/room', {
+    var socket = io.connect('http://localhost:8005/room', { //room 네임스페이스
       path: '/socket.io'
     });
+
+    // newRoom 이벤트 리스너
     socket.on('newRoom', function (data) {
       var tr = document.createElement('tr');
       var td = document.createElement('td');
@@ -53,6 +56,8 @@ block content
       tr.dataset.id = data._id;
       document.querySelector('table tbody').appendChild(tr);
     });
+
+    //removeRoom 이벤트 리스너
     socket.on('removeRoom', function (data) {
       document.querySelectorAll('tbody tr').forEach(function (tr) {
         if (tr.dataset.id === data) {
@@ -60,6 +65,8 @@ block content
         }
       });
     });
+    
+    //비밀번호 유무에 따른 path처리
     function addBtnEvent(e) {
       if (e.target.dataset.password === 'true') {
         const password = prompt('비밀번호를 입력하세요');

@@ -5,11 +5,11 @@ html
     title GIF 채팅방
   body
     div F12를 눌러 console 탭과 network 탭을 확인하세요.
-    script(src='/socket.io/socket.io.js')
+    script(src='/socket.io/socket.io.js') <!-- socket.io.js 참조-->
     script.
       var socket = io.connect('http://localhost:8005', {
         path: '/socket.io',
-        transports: ['websocket']
+        transports: ['websocket'] // 처음부터 웹 소켓방식
       });
       socket.on('news', function (data) {
         console.log(data);
